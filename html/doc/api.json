@@ -1,0 +1,237 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "文件上传微服务",
+    "description": "文件上传微服务,当前只支持上传到阿里云oss，上传文件返回数据全面，可加密",
+    "license": {
+      "name": "Apache 2.0"
+    },
+    "contact": {
+      "name": "彭政",
+      "url": "http://file.szprize.cn",
+      "email": "109521@qq.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://{environment}szprize.cn",
+      "description": "接口地址（通过二级域名区分开发、测试、预发布、正式环境）",
+      "variables": {
+        "environment":{
+          "enum": [
+            "dev.file.",
+            "test.file.",
+            "pre.file.",
+            "file."
+          ],
+          "default": "file.",
+          "description": "根据需要，选择不同环境下文档"
+        }
+      }
+    },
+    {
+      "url": "http://192.168.5.191:8182"
+    }
+
+  ],
+  "tags": [
+    {
+      "name": "api",
+      "description": "前端接口"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "project":{
+        "type": "string",
+        "maxLength": 50,
+        "minLength": 1,
+        "description": "项目名称，默认default",
+        "default": "default"
+      },
+      "filename":{
+        "type": "string",
+        "maxLength": 50,
+        "minLength": 1,
+        "description": "上传后保存的文件名"
+      },
+      "statusCode":{
+        "type": "integer",
+        "description": "状态（错误|成功）代码"
+      },
+      "message":{
+        "type":"string",
+        "minLength": 1,
+        "description":"状态（错误|成功）信息说明"
+      },
+      "url":{
+        "type":"string",
+        "description":"文件访问地址"
+      },
+      "type":{
+        "type":"string",
+        "description":"文件媒体类型"
+      },
+      "md5": {
+        "type": "string",
+        "maxLength": 50,
+        "minLength": 1,
+        "description": "文件md5值，方便校验完整性"
+      },
+      "size": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "文件大小"
+      },
+      "extra": {
+        "description": "扩展信息，如图片宽高、apk 包名、版本号、icon地址等",
+        "type": "object",
+        "properties": {
+          "width":{
+            "type":"integer",
+            "minimum":0,
+            "description":"图片宽"
+          },
+          "height":{
+            "type":"integer",
+            "minimum":0,
+            "description":"图片高"
+          }
+        }
+      },
+
+      "errorModel":{
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "$ref":"#/components/schemas/statusCode"
+          },
+          "message":{
+            "$ref":"#/components/schemas/message"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "project":{
+        "name": "project",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/project"
+        }
+      },
+      "filename":{
+        "name": "filename",
+        "in": "query",
+        "schema": {
+          "$ref": "#/components/schemas/filename"
+        }
+      }
+    },
+    "responses": {
+      "404":{
+        "description": "记录不存在",
+        "content": {
+          "application/json": {
+            "schema":{
+              "$ref": "#/components/schemas/errorModel"
+            }
+          }
+        }
+      },
+      "502":{
+        "description": "网关错误（服务不存在或未启动）",
+        "content": {
+          "text/*": {
+
+          }
+        }
+      },
+      "200":{
+        "description": "正常返回",
+        "content": {
+          "application/json": {
+            "schema":{
+              "type": "object",
+              "properties": {
+                "data":{
+                  "type":"object",
+                  "properties":{
+                    "url":{
+                      "$ref":"#/components/schemas/url"
+                    },
+                    "type":{
+                      "$ref":"#/components/schemas/type"
+                    },
+                    "md5":{
+                      "$ref":"#/components/schemas/md5"
+                    },
+                    "size":{
+                      "$ref":"#/components/schemas/size"
+                    },
+                    "extra":{
+                      "$ref":"#/components/schemas/extra"
+                    }
+                  }
+                },
+                "message":{
+                  "type":"string"
+                },
+                "statusCode":{
+                  "type":"integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "api key":{
+        "name": "api_key",
+        "type": "string",
+        "in": "header"
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/upload/file":{
+      "post": {
+        "tags": ["api"],
+        "summary": "上传单个文件",
+        "operationId": "api.v1.upload.single",
+        "requestBody": {
+          "content": {
+            "multipart/form-data":{
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file":{
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {"$ref": "#/components/parameters/project"},
+          {"$ref": "#/components/parameters/filename"}
+        ],
+        "responses": {
+          "404": {
+            "$ref": "#/components/responses/404"
+          },
+          "502": {
+            "$ref": "#/components/responses/502"
+          },
+          "200": {
+            "$ref": "#/components/responses/200"
+          }
+        }
+      }
+    }
+  }
+}

@@ -26,11 +26,6 @@ end
 
 
 function upload(self,keys,filename)
-    ngx.header["content-type"]="application/json";
-    ngx.status=200;
-    ngx.say("hello world");
-    ngx.exit(200);
-    return;
     local file, err = self:_read_file();
     filename = filename or self:_generate_filename(file.name);
     local err,url,response=self:_upload(file.body,file.type,filename);
@@ -144,7 +139,7 @@ function _afterUploadAndroidApk(self,binary)
     local icon=output['icon'] or nil
     if icon then
      -- 获取icon 图标
-     cmd= "unzip -o  "..tmpFilename.." "..icon.." -d /tmp/apk_icon/ |grep extracting |awk -F':' '{print $2}'" ;
+     cmd= "unzip -o  "..tmpFilename.." "..icon.." -d /tmp/apk_icon/ |grep '"..icon.."' |awk -F':' '{print $2}'" ;
      ngx.log(ngx.INFO,"unzip system shell :"..cmd);
      rsfile = io.popen(cmd)
      rschar = rsfile:read("*all")

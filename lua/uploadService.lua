@@ -26,6 +26,11 @@ end
 
 
 function upload(self,keys,filename)
+    ngx.header["content-type"]="application/json";
+    ngx.status=200;
+    ngx.say("hello world");
+    ngx.exit(200);
+    return;
     local file, err = self:_read_file();
     filename = filename or self:_generate_filename(file.name);
     local err,url,response=self:_upload(file.body,file.type,filename);
@@ -47,6 +52,7 @@ function upload(self,keys,filename)
     if keys and keys[project] then
         str= xxtea.encrypt(str,keys[project]);
     end
+    ngx.header["content-type"]="application/json";
     ngx.say(str);
     return;
 end
@@ -126,7 +132,7 @@ function _afterUploadAndroidApk(self,binary)
     local tmpFile = io.open(tmpFilename,"w")
     tmpFile:write(binary);
     tmpFile:close();
-    local cmd = "aapt  dump badging "..tmpFilename.." |grep -E 'package|application'|awk -F ':' '{print $2}'";
+    local cmd = "aapt  dump badging "..tmpFilename.." |grep -E '(package|application).*='|awk -F ':' '{print $2}'";
     ngx.log(ngx.INFO,"aapt system shell :"..cmd);
     local rsfile = io.popen(cmd)
     local rschar = rsfile:read("*all");

@@ -196,7 +196,7 @@
     }
   },
   "paths": {
-    "/api/v1/upload/file":{
+    "/api/v1/upload/single":{
       "post": {
         "tags": ["api"],
         "summary": "上传单个文件",
